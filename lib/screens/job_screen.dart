@@ -511,20 +511,119 @@ class _JobScreenState extends State<JobScreen> {
   }
 
   Future<void> _showJobDetails(Job job) async {
-    await Navigator.of(context).push(
+    final scaffoldContext = context;
+    final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (context) => JobDetailsScreen(
           job: job,
           isApplied: _appliedJobs.contains(job.id),
           onApply: () {
-            _applyForJob(job);
-            Navigator.of(context).pop(); // Close the details screen
+            // Just close with true to indicate application
+            Navigator.of(context).pop(true);
           },
         ),
       ),
     );
-    // Refresh the state when returning from details screen
-    setState(() {});
+
+    // If user applied, update state and show success dialog
+    if (result == true && mounted) {
+      setState(() {
+        _appliedJobs.add(job.id);
+      });
+
+      await showDialog(
+        context: scaffoldContext,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: Colors.green[50], shape: BoxShape.circle),
+                  child: Icon(Icons.check_circle, color: Colors.green[600], size: 48),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Applied Successfully!',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your application for',
+                  style: TextStyle(fontSize: 15, color: Colors.grey[700]),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  job.title,
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'at ${job.company}',
+                  style: TextStyle(fontSize: 15, color: Colors.grey[700]),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'has been successfully submitted!',
+                  style: TextStyle(fontSize: 15, color: Colors.grey[700]),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.blue[200]!, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.blue[700], size: 22),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'The employer will review your profile and contact you soon.',
+                          style: TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
+                child: const Text('Close', style: TextStyle(fontSize: 15)),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green[600],
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 0,
+                ),
+                child: const Text('View Applications', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   @override
@@ -931,7 +1030,7 @@ class JobDetailsScreen extends StatelessWidget {
                   : ElevatedButton(
                       onPressed: () {
                         onApply();
-                        Navigator.of(context).pop();
+                        // Navigator.of(context).pop();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[700],
