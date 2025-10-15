@@ -22,6 +22,7 @@ class Chat {
   final DateTime timestamp;
   final int unreadCount;
   final bool isOnline;
+  final String? imageUrl;
 
   Chat({
     required this.id,
@@ -31,5 +32,6 @@ class Chat {
     required this.timestamp,
     this.unreadCount = 0,
     this.isOnline = false,
+    this.imageUrl,
   });
 }
